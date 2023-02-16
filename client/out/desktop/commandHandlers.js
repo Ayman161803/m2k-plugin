@@ -22,17 +22,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generatePlan = exports.setOutputChannelForDesktopCommands = void 0;
+exports.generatePlan = exports.setOutputChannelForCommand = void 0;
 const vscode = require("vscode");
+const { spawn } = require('child_process');
 let outputChannel;
-function setOutputChannelForDesktopCommands(oc) {
+function setOutputChannelForCommand(oc) {
     outputChannel = oc;
 }
-exports.setOutputChannelForDesktopCommands = setOutputChannelForDesktopCommands;
+exports.setOutputChannelForCommand = setOutputChannelForCommand;
 function generatePlan(file) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            vscode.window.showInformationMessage(`Sucessfully generated Plan`);
+            vscode.window.showInformationMessage(`Generating Plan..`);
+            console.log("here");
+            var workerProcess = spawn(`move2kube plan`, [`-p ${file.fsPath} -s ${file.fsPath}`]);
+            const terminalCommand = `move2kube plan -p ${file.fsPath} -s ${file.fsPath}`;
+            outputChannel.show();
+            outputChannel.clear();
+            const child = spawn(terminalCommand, [], {
+                shell: true,
+                env: process.env
+            });
+            child.stdout.on('data', (data) => {
+                outputChannel.appendLine(data.toString());
+            });
+            child.stderr.on('data', (data) => {
+                outputChannel.appendLine(data.toString());
+            });
+            child.on('exit', () => vscode.window.showInformationMessage(`Sucessfully generated plan to ${file.fsPath}`));
             return true;
         }
         catch (error) {

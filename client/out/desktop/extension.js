@@ -28,6 +28,7 @@ function activate(context) {
     };
     // create the output channel
     const outputChannel = vscode.window.createOutputChannel('Move2Kube');
+    (0, commandHandlers_1.setOutputChannelForCommand)(outputChannel);
     // Register commands
     context.subscriptions.push(vscode.commands
         .registerCommand('m2k-plugin.generatePlan', commandHandlers_1.generatePlan));

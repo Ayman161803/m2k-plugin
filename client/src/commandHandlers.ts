@@ -14,7 +14,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-
+const {spawn}  = require('child_process');
 let outputChannel: vscode.OutputChannel
 
 export function setOutputChannelForCommand(oc: vscode.OutputChannel) {
@@ -23,7 +23,28 @@ export function setOutputChannelForCommand(oc: vscode.OutputChannel) {
 
 export async function generatePlan(file: vscode.Uri) {
 	try {
-		vscode.window.showInformationMessage(`Sucessfully generated Plan`);
+		vscode.window.showInformationMessage(`Generating Plan..`);
+		console.log("here")
+		var workerProcess = spawn(`move2kube plan`,[`-p ${file.fsPath} -s ${file.fsPath}`]);  
+		const terminalCommand = `move2kube plan -p ${file.fsPath} -s ${file.fsPath}`
+
+		outputChannel.show()
+		outputChannel.clear()
+		
+		const child = spawn(terminalCommand, [], {
+		  shell: true,
+		  env: process.env
+		});
+	
+		child.stdout.on('data', (data) => {
+		  outputChannel.appendLine(data.toString());
+		});
+	
+		child.stderr.on('data', (data) => {
+			outputChannel.appendLine(data.toString());
+		});
+
+		child.on('exit', ()=> vscode.window.showInformationMessage(`Sucessfully generated plan to ${file.fsPath}`))
 		return true;
 	} catch (error) {
 		vscode.window.showErrorMessage( `Failed to trigger clause ${error}`);
